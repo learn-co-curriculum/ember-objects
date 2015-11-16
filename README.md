@@ -57,9 +57,15 @@ It's a shortcut.
 
 ## Computed Properties
 
-Computed properties are a super power in Ember and the fact that they're in EVERY OBJECT should get you excited. A computed property is a property that gets updated as your object changes. You define a list of properties you depend on, and when one of those properties changes (meaning someone called `set` on it), your computed property will also change. It's lazy so it won't regenerate the value every time, only when there's a change. Here's a simple example.
+Computed properties are a super power in Ember and the fact that they're in EVERY OBJECT should get you excited. A computed property is a property that gets updated as your object changes. You define a list of properties you depend on, and when one of those properties changes (meaning someone called `set` on it), your computed property will also change. It's lazy so it won't regenerate the value every time, only when there's a change. 
 
-Let's say we want to have the total price of an item update based on the price &times; the quantity. In regular javascript you might define a function called total that will multiply price and quantity. This calculation would run every time it's called. With computed properties we only run the computation when a dependent property changes.
+Instead of defining a function that we will invoke *every time we want to grab its return value*, we can build a computed property that will only be invoked when one of the properties that it depends on has changed.
+
+
+Here's a simple example:
+
+Let's say we want to have the total price of an item update based on the price &times; the quantity. In regular javascript you might define a function called `total` that will multiply price and quantity. This calculation would run every time it's called. With computed properties that computation is only run when a dependent property (in this case `price` or `quantity`) changes.
+
 Here's the Ember code for that:
 
 ```javascript
@@ -73,11 +79,19 @@ var Item = Ember.Object.extend({
 
 var ham  = Item.create({price: 3, quantity: 1});
 ham.get("total"); // 3
+ham.get("total"); // 3
 ham.set("quantity", 5)
 ham.get("total"); //15
 ```
 
-Be sure to look at the created ones Ember makes for you [here](http://emberjs.com/api/classes/Ember.computed.html).
+Let's break this down:
+
+* First, we create an item, `ham`, that has a price of 3 and a quantity of 1. 
+* Then, we `get` the computed property that we called `total`. This will be calculated and return `3`. 
+* Then, we `get` the computed property, `total`, again. This time, however, the calculation *isn't run*. Our Ember object remembers that has a computed property called `total`, that is currently set to `3`. 
+* Then, we `set` the quantity property equal to a different number, `5`. Our computed property, `total`, depends on the quantity property and is listening to any changes that might have occurred to that or its other dependent property. Now that the value of the quantity property has changed, the `total` computed property will be re-calculated. Which is exactly what happens on the next line. 
+
+Be sure to look at computed properties created Ember makes for you [here](http://emberjs.com/api/classes/Ember.computed.html).
 
 ### Working with collections
 
@@ -111,7 +125,7 @@ cart.get('items').pushObjects([ham, cheese, bread]);
 cart.get("total"); // 10
 
 ```
-This function will run only when the `total` property of an item is changed. We used that weird `items.@each.total` property to say just that. Notify me when any of the item's total changes.
+This function will run only when the `total` property of an item is changed. We used that weird `items.@each.total` property to say just that. The `@each` is a special key that listens to any changes in the `total` property of all of the elements in the `items` collection. It will notify the computed property that contains it when any of the items; totals have changed. 
 
 What if we wanted to update when an item is added or removed? Say we wanted a total number of items in the cart:
 
@@ -145,7 +159,7 @@ cart.get('items').pushObjects([ham, cheese, bread]);
 cart.get("numberOfItems"); // 3
 ```
 
-Here we did 2 things. One is the use of `items.[]`. This means update the computed property if the number of elements changes. You won't be notified of changes to properties. The other thing we did is `return this.get('items.length')`. Ember lets you chain messages inside of `get`s and `sets`s.
+Here we did 2 things. One is the use of `items.[]`. This means update the computed property if the *number* of elements changes. You won't be notified of changes to properties, unlike the `@each` we used above. The other thing we did is `return this.get('items.length')`. Ember lets you chain messages inside of `get`s and `sets`s.
 
 You can use a short hand for this though, by using one of Ember's built in computed properties. Basically what we're doing is creating an alias for `items.length` that updates. Instead of the function we have for `numberOfItems`, we can have this instead:
 
