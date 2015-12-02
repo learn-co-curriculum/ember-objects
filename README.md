@@ -192,3 +192,5 @@ cart.get("numberOfItems"); // 3
 ```
 
 So nice!
+
+<a href='https://learn.co/lessons/ember-objects' data-visibility='hidden'>View this lesson on Learn.co</a>
